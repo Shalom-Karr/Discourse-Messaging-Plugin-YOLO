@@ -31,9 +31,12 @@ All notable changes to the discourse-admin-messenger plugin are documented here.
    - **What:** Changed the bare `StaffActionLogger.new(...).log_topic_made_public(topic)` call to first verify the method exists via `StaffActionLogger.method_defined?(:log_topic_made_public)`.
    - **Why:** This method was removed from Discourse's `StaffActionLogger` in a recent version, causing a `NoMethodError` during every merge operation.
 
-### `lib/discourse_admin_messenger/guardian_extensions.rb` — Fixed
-- **What:** Removed `return true if super` from `can_send_private_message_to_group?`. The method now owns its full logic without delegating to the parent class.
-- **Why:** Current Discourse does not define `can_send_private_message_to_group?` in `Guardian`. Calling `super` caused `EnsureMagic#method_missing` to raise `NoMethodError`, breaking all group-PM permission checks. Since the plugin is the sole definer of this method, it must handle all cases directly.
+### `lib/discourse_admin_messenger/guardian_extensions.rb` — Fixed (multiple)
+1. **Removed `super` from `can_send_private_message_to_group?`**
+   - **Why:** Current Discourse does not define `can_send_private_message_to_group?` in `Guardian`. Calling `super` caused `EnsureMagic#method_missing` to raise `NoMethodError`. The plugin is now the sole owner of this method.
+
+2. **Changed `notify_fallback:` → `notify_moderators:` in `can_send_private_message?`**
+   - **Why:** Discourse renamed this keyword argument. Passing the old name caused `ArgumentError: unknown keyword: :notify_fallback` when `super` was called.
 
 ### `spec/requests/merge_to_public_controller_spec.rb` — Fixed
 - **What:** Updated the "falls back to uncategorized" test to use `admin_messenger_merge_category_id = 0` instead of `= -1`.

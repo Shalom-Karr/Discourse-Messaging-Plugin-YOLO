@@ -2,7 +2,7 @@
 
 module DiscourseAdminMessenger
   module GuardianExtensions
-    def can_send_private_message?(target, notify_fallback: false)
+    def can_send_private_message?(target, notify_moderators: false)
       return true if super
       return false unless SiteSetting.admin_messenger_enabled
       return false unless SiteSetting.admin_messenger_allow_all_users_pm
