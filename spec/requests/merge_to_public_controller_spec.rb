@@ -120,6 +120,31 @@ RSpec.describe DiscourseAdminMessenger::MergeToPublicController do
       end
     end
 
+    context "when logged in as a group-based participant" do
+      fab!(:allowed_group) { Fabricate(:group) }
+
+      before do
+        pm_topic.topic_allowed_groups.create!(group: allowed_group)
+        allowed_group.add(other_user)
+        sign_in(other_user)
+      end
+
+      it "successfully merges" do
+        post "/admin-messenger/merge-to-public.json", params: { topic_id: pm_topic.id }
+        expect(response.status).to eq(200)
+
+        json = response.parsed_body
+        expect(json["success"]).to eq(true)
+      end
+
+      it "records the merging user in custom fields" do
+        post "/admin-messenger/merge-to-public.json", params: { topic_id: pm_topic.id }
+
+        pm_topic.reload
+        expect(pm_topic.custom_fields["merged_from_pm_by"]).to eq(other_user.id.to_s)
+      end
+    end
+
     context "when logged in as a non-participant" do
       before { sign_in(other_user) }
 

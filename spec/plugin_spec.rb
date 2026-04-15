@@ -86,6 +86,57 @@ RSpec.describe "DiscourseAdminMessenger plugin.rb" do
     end
   end
 
+  describe ":before_create_topic integration (via API)" do
+    fab!(:admins_group) { Group.find_by(name: "admins") || Fabricate(:group, name: "admins") }
+
+    before { sign_in(user) }
+
+    it "blocks a non-staff user from creating a PM without @admins" do
+      expect {
+        post "/posts.json",
+             params: {
+               raw: "Hello, anyone there?",
+               title: "Needs help",
+               archetype: "private_message",
+               target_usernames: admin.username,
+             }
+      }.not_to change { Topic.count }
+
+      expect(response.status).to eq(422)
+    end
+
+    it "allows a non-staff user to create a PM that includes @admins group" do
+      expect {
+        post "/posts.json",
+             params: {
+               raw: "Hello admins, need help.",
+               title: "Question for admins",
+               archetype: "private_message",
+               target_usernames: admin.username,
+               target_group_names: admins_group.name,
+             }
+      }.to change { Topic.count }.by(1)
+
+      expect(response.status).to eq(200)
+    end
+
+    it "allows staff to create a PM without @admins" do
+      sign_in(admin)
+
+      expect {
+        post "/posts.json",
+             params: {
+               raw: "Staff-to-staff message.",
+               title: "Staff message",
+               archetype: "private_message",
+               target_usernames: moderator.username,
+             }
+      }.to change { Topic.count }.by(1)
+
+      expect(response.status).to eq(200)
+    end
+  end
+
   describe "topic_view serializer extensions" do
     fab!(:category) { Fabricate(:category) }
 
@@ -113,6 +164,20 @@ RSpec.describe "DiscourseAdminMessenger plugin.rb" do
       it "is true for staff" do
         topic_view = TopicView.new(pm_topic.id, admin)
         serializer = TopicViewSerializer.new(topic_view, scope: Guardian.new(admin), root: false)
+        json = serializer.as_json
+
+        expect(json[:can_merge_to_public]).to eq(true)
+      end
+
+      it "is true for a group-based participant" do
+        allowed_group = Fabricate(:group)
+        pm_topic.topic_allowed_groups.create!(group: allowed_group)
+        group_member = Fabricate(:user)
+        allowed_group.add(group_member)
+
+        topic_view = TopicView.new(pm_topic.id, admin) # admin loads the view
+        serializer =
+          TopicViewSerializer.new(topic_view, scope: Guardian.new(group_member), root: false)
         json = serializer.as_json
 
         expect(json[:can_merge_to_public]).to eq(true)
@@ -150,6 +215,28 @@ RSpec.describe "DiscourseAdminMessenger plugin.rb" do
     end
 
     describe "#was_merged_from_pm" do
+      it "is included for public topics (plugin enabled, field always present)" do
+        public_topic = Fabricate(:topic, user: user, category: category)
+        Fabricate(:post, topic: public_topic, user: user)
+        topic_view = TopicView.new(public_topic.id, user)
+        serializer = TopicViewSerializer.new(topic_view, scope: Guardian.new(user), root: false)
+        json = serializer.as_json
+
+        # include_was_merged_from_pm? only gates on admin_messenger_enabled,
+        # so the field is present for all topics when the plugin is on
+        expect(json).to have_key(:was_merged_from_pm)
+        expect(json[:was_merged_from_pm]).to eq(false)
+      end
+
+      it "is not included when plugin is disabled" do
+        SiteSetting.admin_messenger_enabled = false
+        topic_view = TopicView.new(pm_topic.id, user)
+        serializer = TopicViewSerializer.new(topic_view, scope: Guardian.new(user), root: false)
+        json = serializer.as_json
+
+        expect(json).not_to have_key(:was_merged_from_pm)
+      end
+
       it "is false when topic has not been merged" do
         topic_view = TopicView.new(pm_topic.id, user)
         serializer = TopicViewSerializer.new(topic_view, scope: Guardian.new(user), root: false)
