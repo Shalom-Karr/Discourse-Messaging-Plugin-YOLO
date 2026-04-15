@@ -1,0 +1,4 @@
+{
+  "name": "discourse-admin-messenger",
+  "about": "Allows user messaging when the @admins group or moderator members are included, with merge-to-public option for any participant"
+}

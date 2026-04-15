@@ -1,0 +1,22 @@
+discourse_admin_messenger:
+  admin_messenger_enabled:
+    default: false
+    client: true
+  admin_messenger_required_group:
+    default: "admins"
+    type: string
+    client: true
+  admin_messenger_allowed_moderator_group:
+    default: "moderators"
+    type: string
+    client: true
+  admin_messenger_merge_category_id:
+    default: -1
+    type: integer
+    client: true
+  admin_messenger_allow_all_users_pm:
+    default: false
+    client: true
+  admin_messenger_merge_unlists_first:
+    default: true
+    client: false
