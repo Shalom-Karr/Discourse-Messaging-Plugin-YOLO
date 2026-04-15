@@ -56,10 +56,10 @@ jobs:
         with:
           path: discourse/plugins/discourse-admin-messenger
 
-      - name: Set up Ruby (from Discourse .ruby-version)
+      - name: Set up Ruby 3.4
         uses: ruby/setup-ruby@v1
         with:
-          working-directory: discourse
+          ruby-version: "3.4"
           bundler-cache: false
 
       - name: Install system dependencies
