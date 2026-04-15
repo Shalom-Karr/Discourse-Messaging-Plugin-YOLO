@@ -110,8 +110,8 @@ RSpec.describe DiscourseAdminMessenger::MergeToPublicController do
         }.to change { pm_topic.posts.where(post_type: Post.types[:small_action]).count }.by(1)
       end
 
-      it "falls back to uncategorized when merge_category_id is -1" do
-        SiteSetting.admin_messenger_merge_category_id = -1
+      it "falls back to uncategorized when merge_category_id is 0" do
+        SiteSetting.admin_messenger_merge_category_id = 0
         post "/admin-messenger/merge-to-public.json", params: { topic_id: pm_topic.id }
         expect(response.status).to eq(200)
 

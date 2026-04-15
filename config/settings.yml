@@ -11,8 +11,9 @@ discourse_admin_messenger:
     type: string
     client: true
   admin_messenger_merge_category_id:
-    default: -1
+    default: 0
     type: integer
+    min: 0
     client: true
   admin_messenger_allow_all_users_pm:
     default: false

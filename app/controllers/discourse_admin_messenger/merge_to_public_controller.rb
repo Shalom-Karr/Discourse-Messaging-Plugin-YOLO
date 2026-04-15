@@ -42,7 +42,7 @@ module DiscourseAdminMessenger
 
       # Determine the destination category
       category_id = SiteSetting.admin_messenger_merge_category_id
-      category_id = SiteSetting.uncategorized_category_id if category_id.blank? || category_id == -1
+      category_id = SiteSetting.uncategorized_category_id if category_id.blank? || category_id <= 0
       category = Category.find_by(id: category_id) || Category.find_by(id: SiteSetting.uncategorized_category_id)
 
       Topic.transaction do
