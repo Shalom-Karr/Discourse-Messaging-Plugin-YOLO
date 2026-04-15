@@ -6,6 +6,10 @@ All notable changes to the discourse-admin-messenger plugin are documented here.
 
 ## [Unreleased]
 
+### `config/settings.yml` — Fixed (client exposure)
+- **What:** Removed `client: true` from `admin_messenger_allowed_moderator_group`, `admin_messenger_merge_category_id`, and `admin_messenger_allow_all_users_pm`.
+- **Why:** `client: true` preloads the setting value into every page load for every user. None of these three settings are read by any JavaScript — they are server-side only. Only `admin_messenger_enabled` and `admin_messenger_required_group` are actually used client-side (the composer initializer reads them). Leaking the moderator group name, the merge category ID, and the allow-all-users flag to every visitor is unnecessary information disclosure.
+
 ### `.github/workflows/plugin-tests.yml` — Added
 - **What:** Added GitHub Actions CI workflow to run the full RSpec suite against a real Discourse environment (side-by-side clone of `discourse/discourse`).
 - **Why:** Local Docker/WSL unavailable (blocked by IT); CI is the only way to run tests in a real Discourse environment without affecting the live forum.

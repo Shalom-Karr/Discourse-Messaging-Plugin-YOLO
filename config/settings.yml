@@ -9,15 +9,12 @@ discourse_admin_messenger:
   admin_messenger_allowed_moderator_group:
     default: "moderators"
     type: string
-    client: true
   admin_messenger_merge_category_id:
     default: 0
     type: integer
     min: 0
-    client: true
   admin_messenger_allow_all_users_pm:
     default: false
-    client: true
   admin_messenger_merge_unlists_first:
     default: true
     client: false
