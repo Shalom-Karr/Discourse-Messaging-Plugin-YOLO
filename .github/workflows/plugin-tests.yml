@@ -6,8 +6,10 @@ on:
       - main
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   build:
     uses: discourse/.github/.github/workflows/plugin-tests.yml@main
-    with:
-      repository: discourse/discourse
