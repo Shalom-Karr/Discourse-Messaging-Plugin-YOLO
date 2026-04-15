@@ -26,6 +26,10 @@ jobs:
       PGPASSWORD: discourse
       DISCOURSE_DEV_DB: discourse_test
       LOAD_PLUGINS: 1
+      DISCOURSE_REDIS_URL: redis://redis:6379
+      DISCOURSE_DB_HOST: postgres
+      DISCOURSE_DB_USERNAME: discourse
+      DISCOURSE_DB_PASSWORD: discourse
 
     services:
       postgres:
