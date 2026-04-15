@@ -14,22 +14,6 @@ jobs:
   rspec:
     name: RSpec
     runs-on: ubuntu-latest
-    container:
-      image: discourse/discourse_dev:release
-      options: --user root
-
-    env:
-      RAILS_ENV: test
-      PGHOST: postgres
-      PGPORT: 5432
-      PGUSER: discourse
-      PGPASSWORD: discourse
-      DISCOURSE_DEV_DB: discourse_test
-      LOAD_PLUGINS: 1
-      DISCOURSE_REDIS_URL: redis://redis:6379
-      DISCOURSE_DB_HOST: postgres
-      DISCOURSE_DB_USERNAME: discourse
-      DISCOURSE_DB_PASSWORD: discourse
 
     services:
       postgres:
@@ -38,19 +22,27 @@ jobs:
           POSTGRES_USER: discourse
           POSTGRES_PASSWORD: discourse
           POSTGRES_DB: discourse_test
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
-      redis:
-        image: redis:6
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    env:
+      RAILS_ENV: test
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: discourse
+      PGPASSWORD: discourse
+      DISCOURSE_DEV_DB: discourse_test
+      LOAD_PLUGINS: 1
+      DISCOURSE_REDIS_URL: redis://127.0.0.1:6379
+      REDIS_URL: redis://127.0.0.1:6379
+      DISCOURSE_DB_HOST: 127.0.0.1
+      DISCOURSE_DB_USERNAME: discourse
+      DISCOURSE_DB_PASSWORD: discourse
 
     steps:
       - name: Checkout Discourse
@@ -64,26 +56,33 @@ jobs:
         with:
           path: discourse/plugins/discourse-admin-messenger
 
+      - name: Set up Ruby (from Discourse .ruby-version)
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: discourse
+          bundler-cache: false
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libpq-dev libssl-dev imagemagick
+
+      - name: Start Redis
+        run: |
+          sudo apt-get install -y redis-server
+          sudo service redis-server start
+          redis-cli ping
+
       - name: Bundle install
         working-directory: discourse
         run: bundle install --jobs 4 --retry 3
 
-      - name: Wait for services
-        run: |
-          until redis-cli -h redis ping; do sleep 1; done
-          until pg_isready -h postgres -U discourse; do sleep 1; done
-
       - name: Set up database
         working-directory: discourse
-        env:
-          REDIS_URL: redis://redis:6379
-        run: |
-          bundle exec rake db:create db:migrate
+        run: bundle exec rake db:create db:migrate
 
       - name: Run plugin specs
         working-directory: discourse
-        env:
-          REDIS_URL: redis://redis:6379
         run: |
           bundle exec rspec plugins/discourse-admin-messenger/spec \
             --format documentation
