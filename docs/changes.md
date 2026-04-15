@@ -38,6 +38,14 @@ All notable changes to the discourse-admin-messenger plugin are documented here.
 2. **Changed `notify_fallback:` → `notify_moderators:` in `can_send_private_message?`**
    - **Why:** Discourse renamed this keyword argument. Passing the old name caused `ArgumentError: unknown keyword: :notify_fallback` when `super` was called.
 
+### `spec/requests/pm_creation_spec.rb` — Added
+- **What:** Created a new request spec file for PM creation enforcement tests.
+- **Why:** The integration tests (`POST /posts.json` with `sign_in`) were previously added to `spec/plugin_spec.rb`, which is not a request spec context. `sign_in` (a Devise/Warden helper) is only available in specs tagged `type: :request` or located under `spec/requests/`. Moving them to this file fixes 3 `NoMethodError: undefined method 'sign_in'` failures.
+
+### `spec/plugin_spec.rb` — Fixed
+- **What:** Removed the `:before_create_topic integration (via API)` describe block (3 tests).
+- **Why:** Those tests used `sign_in` which is unavailable in non-request spec contexts; they are now in `spec/requests/pm_creation_spec.rb`.
+
 ### `spec/requests/merge_to_public_controller_spec.rb` — Fixed
 - **What:** Updated the "falls back to uncategorized" test to use `admin_messenger_merge_category_id = 0` instead of `= -1`.
 - **Why:** The setting default and sentinel value changed from `-1` to `0` (see `config/settings.yml` fix above).
