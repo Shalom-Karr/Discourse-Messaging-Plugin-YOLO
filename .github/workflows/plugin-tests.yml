@@ -49,6 +49,22 @@ jobs:
       DISCOURSE_DEV_DB: discourse_test
 
     steps:
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            libpq-dev \
+            libssl-dev \
+            libreadline-dev \
+            imagemagick \
+            optipng \
+            advancecomp \
+            gifsicle \
+            jpegoptim \
+            pngcrush \
+            pngquant \
+            jhead
+
       - name: Checkout Discourse
         uses: actions/checkout@v4
         with:
@@ -63,18 +79,19 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.2"
-          bundler-cache: true
           working-directory: discourse
-
-      - name: Install Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+          bundler-cache: false
 
       - name: Bundle install
         working-directory: discourse
-        run: bundle install --jobs 4 --retry 3
+        run: |
+          gem install bundler --no-document
+          bundle install --jobs 4 --retry 3
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
       - name: Set up database
         working-directory: discourse
@@ -86,13 +103,11 @@ jobs:
         working-directory: discourse
         run: |
           bundle exec rspec plugins/discourse-admin-messenger/spec \
-            --format progress \
-            --format RspecJunitFormatter \
-            --out tmp/rspec-plugin.xml
+            --format documentation
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: rspec-results
-          path: discourse/tmp/rspec-plugin.xml
+          path: discourse/tmp/rspec*.xml
