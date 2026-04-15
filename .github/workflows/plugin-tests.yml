@@ -73,6 +73,18 @@ jobs:
           sudo service redis-server start
           redis-cli ping
 
+      - name: Set up Node and pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install JS dependencies
+        working-directory: discourse
+        run: pnpm install
+
       - name: Bundle install
         working-directory: discourse
         run: bundle install --jobs 4 --retry 3
