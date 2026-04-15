@@ -1,0 +1,14 @@
+en:
+  js:
+    admin_messenger:
+      merge_to_public:
+        title: "Merge to Public"
+        description: "Convert this private message into a public topic. All posts will become publicly visible."
+        confirm: "Are you sure you want to make this entire conversation public? This action cannot be easily undone."
+        success: "This conversation has been merged to public view."
+        already_merged: "This conversation was previously a private message that was merged to public view."
+  admin_js:
+    admin:
+      site_settings:
+        categories:
+          discourse_admin_messenger: "Admin Messenger"

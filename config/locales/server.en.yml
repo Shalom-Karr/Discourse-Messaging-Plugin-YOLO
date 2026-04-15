@@ -1,0 +1,18 @@
+en:
+  site_settings:
+    admin_messenger_enabled: "Enable the Admin Messenger plugin. Requires the @admins group or a moderator group member to be included in personal messages from non-staff users."
+    admin_messenger_required_group: "The group name that must be included as a recipient on every non-staff PM. Defaults to 'admins'."
+    admin_messenger_allowed_moderator_group: "The group whose individual members can also satisfy the PM requirement when added as direct recipients. Defaults to 'moderators'."
+    admin_messenger_merge_category_id: "The category ID where merged-to-public topics are placed. Use -1 for uncategorized."
+    admin_messenger_allow_all_users_pm: "Allow users below the normal PM trust level to send messages, as long as the required group or a moderator member is included."
+    admin_messenger_merge_unlists_first: "When merging a PM to public, initially unlist the topic so the merger can review before full visibility."
+  admin_messenger:
+    errors:
+      admins_group_required: "You must include the @%{group} group or a member of the @%{mod_group} group as a recipient to send this message."
+      topic_not_found: "Topic not found."
+      not_a_pm: "This topic is not a personal message."
+      already_merged: "This conversation has already been merged to public view."
+      not_a_participant: "You must be a participant in this conversation to merge it to public."
+    merge:
+      small_action: "This topic was converted from a private message to a public topic."
+      success: "Message successfully merged to public view."
