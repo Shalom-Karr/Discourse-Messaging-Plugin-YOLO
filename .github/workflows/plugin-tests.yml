@@ -11,5 +11,88 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    uses: discourse/.github/.github/workflows/plugin-tests.yml@main
+  rspec:
+    name: RSpec
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: discourse
+          POSTGRES_PASSWORD: discourse
+          POSTGRES_DB: discourse_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:6
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: discourse
+      PGPASSWORD: discourse
+      DISCOURSE_DEV_DB: discourse_test
+
+    steps:
+      - name: Checkout Discourse
+        uses: actions/checkout@v4
+        with:
+          repository: discourse/discourse
+          path: discourse
+
+      - name: Checkout plugin
+        uses: actions/checkout@v4
+        with:
+          path: discourse/plugins/discourse-admin-messenger
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          working-directory: discourse
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Bundle install
+        working-directory: discourse
+        run: bundle install --jobs 4 --retry 3
+
+      - name: Set up database
+        working-directory: discourse
+        run: |
+          bundle exec rake db:create
+          bundle exec rake db:migrate
+
+      - name: Run plugin specs
+        working-directory: discourse
+        run: |
+          bundle exec rspec plugins/discourse-admin-messenger/spec \
+            --format progress \
+            --format RspecJunitFormatter \
+            --out tmp/rspec-plugin.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rspec-results
+          path: discourse/tmp/rspec-plugin.xml
