@@ -13,7 +13,7 @@ require_relative "lib/discourse_admin_messenger/topic_creator_extension"
 
 after_initialize do
   %w[
-    ../app/controllers/discourse_admin_messenger/merge_to_public_controller.rb
+    app/controllers/discourse_admin_messenger/merge_to_public_controller.rb
   ].each { |path| require_relative path }
 
   reloadable_patch do
