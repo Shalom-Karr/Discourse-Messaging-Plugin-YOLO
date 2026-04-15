@@ -4,6 +4,7 @@ module DiscourseAdminMessenger
   class MergeToPublicController < ::ApplicationController
     requires_plugin "discourse-admin-messenger"
     before_action :ensure_logged_in
+    before_action :ensure_plugin_enabled
 
     def merge
       topic_id = params.require(:topic_id)
@@ -72,7 +73,9 @@ module DiscourseAdminMessenger
           action_code: "public_topic",
         )
 
-        StaffActionLogger.new(current_user).log_topic_made_public(topic) if current_user.staff? && defined?(StaffActionLogger)
+        if current_user.staff? && defined?(StaffActionLogger) && StaffActionLogger.method_defined?(:log_topic_made_public)
+          StaffActionLogger.new(current_user).log_topic_made_public(topic)
+        end
       end
 
       render json: {
@@ -81,6 +84,12 @@ module DiscourseAdminMessenger
         topic_url: topic.url,
         topic_id: topic.id,
       }
+    end
+
+    private
+
+    def ensure_plugin_enabled
+      raise Discourse::NotFound unless SiteSetting.admin_messenger_enabled
     end
   end
 end
